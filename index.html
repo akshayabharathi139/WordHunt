@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Word Hunt</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #282c34;
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+        }
+
+        h1 {
+            color: #61dafb;
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        .game-container {
+            background-color: #3a3f47;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            margin: auto;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+        }
+
+        input {
+            padding: 12px;
+            width: 70%;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 18px;
+            background-color: #61dafb;
+            border: none;
+            color: #282c34;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #4db7e7;
+        }
+
+        #result {
+            margin-top: 25px;
+            font-size: 1.1rem;
+        }
+
+        .success {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #ff6464;
+        }
+
+        .attempt {
+            background-color: #444950;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .attempt:last-child {
+            background-color: #50555c;
+        }
+    </style>
+</head>
+<body>
+    <h1>Word Match Game</h1>
+    <p>Guess the 4-letter word (No repeating letters)</p>
+
+    <div class="game-container">
+        <input type="text" id="guess" maxlength="4" placeholder="Enter your guess">
+        <button onclick="submitGuess()">Submit</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function submitGuess() {
+            const guess = document.getElementById('guess').value;
+            if (guess.length !== 4) {
+                document.getElementById('result').innerHTML = "<p class='error'>Please enter exactly 4 letters!</p>";
+                return;
+            }
+            fetch('/check_guess', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ guess: guess })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').innerHTML = `<p class='error'>${data.error}</p>`;
+                } else if (data.success) {
+                    document.getElementById('result').innerHTML = `<p class='success'>🎉 Correct! The word was <b>${data.word}</b> in ${data.attempts} attempts.</p>`;
+                } else {
+                    document.getElementById('result').innerHTML += `<div class="attempt">Your Guess: <b>${guess}</b> | Matched Letters: ${data.matched} | Correct Positions: ${data.correct_position}</div>`;
+                }
+                document.getElementById('guess').value = '';
+            });
+        }
+    </script>
+</body>
+</html>
